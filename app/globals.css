@@ -1,0 +1,542 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   NORDEX TECH — Design Tokens
+   ============================================================ */
+:root {
+  /* Brand palette (dark-first) */
+  --background: #090909;
+  --foreground: #f2f2f2;
+  --card: #171717;
+  --card-foreground: #f2f2f2;
+  --popover: #171717;
+  --popover-foreground: #f2f2f2;
+  --primary: #F5A800;
+  /* dourado #F5A800 */
+  --primary-foreground: #090909;
+  --secondary: #262626;
+  --secondary-foreground: #f2f2f2;
+  --muted: #262626;
+  --muted-foreground: #737373;
+  --accent: #F5A800;
+  --accent-foreground: #090909;
+  --destructive: #e50000;
+  --destructive-foreground: #f2f2f2;
+  --border: #3f3f3f;
+  --input: #262626;
+  --ring: #F5A800;
+  --chart-1: #F5A800;
+  --chart-2: #008080;
+  --chart-3: #2f4f4f;
+  --chart-4: #ffbf00;
+  --chart-5: #ff8c00;
+  --radius: 0.5rem;
+  --sidebar: #111111;
+  --sidebar-foreground: #f2f2f2;
+  --sidebar-primary: #F5A800;
+  --sidebar-primary-foreground: #090909;
+  --sidebar-accent: #262626;
+  --sidebar-accent-foreground: #f2f2f2;
+  --sidebar-border: #3f3f3f;
+  --sidebar-ring: #F5A800;
+  --gold: #F5A800;
+  --gold-light: #ffce00;
+  --surface: #171717;
+  --surface-hover: #262626;
+
+  /* Animation timing — edit these to tune globally */
+  --anim-duration: 0.65s;
+  --anim-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --anim-offset: 28px;
+  /* distance elements travel on enter */
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), 'Inter', sans-serif;
+  --font-heading: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============================================================
+   ANIMATION KEYFRAMES
+   ============================================================ */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(var(--anim-offset));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(var(--anim-offset));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--anim-offset) * -1));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes lineGrow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes scrollProgressGrow {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+/* Typewriter cursor blink — used by the Hero heading */
+@keyframes cursorBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   SCROLL-TRIGGERED ANIMATION SYSTEM
+   Used by AnimateOnScroll component and useAnimateOnScroll hook.
+   Elements start hidden; "is-visible" class triggers the animation.
+   ============================================================ */
+
+.animate-on-scroll {
+  opacity: 0;
+  /* animation-fill-mode keeps the final state after animation ends */
+  animation-fill-mode: both;
+  animation-duration: var(--anim-duration);
+  animation-timing-function: var(--anim-ease);
+}
+
+.animate-on-scroll.is-visible.anim-fade-up {
+  animation-name: fadeUp;
+}
+
+.animate-on-scroll.is-visible.anim-fade-in {
+  animation-name: fadeIn;
+}
+
+.animate-on-scroll.is-visible.anim-slide-left {
+  animation-name: slideLeft;
+}
+
+.animate-on-scroll.is-visible.anim-slide-right {
+  animation-name: slideRight;
+}
+
+/* Stagger helpers — add .stagger-N to children inside a reveal container */
+.animate-on-scroll.stagger-1 {
+  animation-delay: 80ms;
+}
+
+.animate-on-scroll.stagger-2 {
+  animation-delay: 160ms;
+}
+
+.animate-on-scroll.stagger-3 {
+  animation-delay: 240ms;
+}
+
+.animate-on-scroll.stagger-4 {
+  animation-delay: 320ms;
+}
+
+.animate-on-scroll.stagger-5 {
+  animation-delay: 400ms;
+}
+
+/* ============================================================
+   SCROLL PROGRESS BAR
+   A thin golden line at the very top of the page.
+   Driven by JS in Navbar via CSS variable --scroll-progress.
+   ============================================================ */
+
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: calc(var(--scroll-progress, 0) * 100%);
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  z-index: 9999;
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+/* ============================================================
+   HOVER CARD LIFT
+   Apply .card-hover to any card element for the elevation effect.
+   ============================================================ */
+
+.card-hover {
+  transition:
+    transform 0.3s var(--anim-ease),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px -12px rgba(245, 168, 0, 0.18);
+}
+
+/* ============================================================
+   BUTTON UNDERLINE SLIDE EFFECT
+   Apply .btn-slide to <a> or <button> for a sliding underline.
+   ============================================================ */
+
+.btn-slide {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-slide::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s var(--anim-ease);
+}
+
+.btn-slide:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   Apply .custom-scrollbar to any overflow container for a themed look.
+   ============================================================ */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-light);
+}
+
+/* Firefox support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-on-scroll {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  .card-hover,
+  .card-hover:hover {
+    transform: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .btn-slide::after {
+    transition: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ============================================================
+   NORDEX PREMIUM DASHBOARD — Extra Keyframes & Utilities
+   ============================================================ */
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes goldGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(245,168,0,0.15), 0 0 20px rgba(245,168,0,0.05); }
+  50% { box-shadow: 0 0 16px rgba(245,168,0,0.35), 0 0 40px rgba(245,168,0,0.12); }
+}
+
+@keyframes goldPulseRing {
+  0% { box-shadow: 0 0 0 0 rgba(245,168,0,0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(245,168,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(245,168,0,0); }
+}
+
+@keyframes borderSlideIn {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes scanLine {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+/* ── Glass card ─────────────────────────────────────────── */
+.glass-card {
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(245, 168, 0, 0.08);
+}
+
+/* ── Gold glow box-shadow ───────────────────────────────── */
+.gold-glow {
+  box-shadow:
+    0 0 0 1px rgba(245, 168, 0, 0.12),
+    0 0 24px rgba(245, 168, 0, 0.08),
+    0 4px 32px rgba(0, 0, 0, 0.4);
+}
+
+.gold-glow-active {
+  animation: goldGlow 3s ease-in-out infinite;
+}
+
+/* ── Gold gradient text ─────────────────────────────────── */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F5A800 0%, #ffce00 50%, #F5A800 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Premium sidebar ────────────────────────────────────── */
+.sidebar-premium {
+  background: #080808;
+  border-right: 1px solid #181818;
+  box-shadow: inset -1px 0 0 rgba(245, 168, 0, 0.04), 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Metric card ────────────────────────────────────────── */
+.metric-card {
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245,168,0,0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.metric-card:hover {
+  border-color: rgba(245, 168, 0, 0.2);
+  box-shadow: 0 0 20px rgba(245, 168, 0, 0.06), 0 8px 32px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+
+.metric-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Premium feed card ──────────────────────────────────── */
+.feed-card {
+  background: #0d0d0d;
+  border: 1px solid #1c1c1c;
+  border-radius: 16px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(180deg, #F5A800, rgba(245,168,0,0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.feed-card:hover {
+  border-color: rgba(245, 168, 0, 0.15);
+  box-shadow: 0 0 16px rgba(245, 168, 0, 0.04), 0 4px 24px rgba(0,0,0,0.3);
+}
+
+.feed-card:hover::after {
+  opacity: 1;
+}
+
+/* ── Gold shimmer (loading/empty state) ─────────────────── */
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    rgba(245,168,0,0) 0%,
+    rgba(245,168,0,0.04) 50%,
+    rgba(245,168,0,0) 100%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+/* ── Active sidebar item ────────────────────────────────── */
+.sidebar-item-active {
+  background: rgba(245, 168, 0, 0.08);
+  border-left: 3px solid #F5A800;
+  box-shadow: inset 0 0 16px rgba(245, 168, 0, 0.04);
+}
+
+/* ── Gold ring pulse for timeline dots ──────────────────── */
+.timeline-dot-active {
+  animation: goldPulseRing 2s ease-out infinite;
+}
+
+/* ── animate-fade-in ────────────────────────────────────── */
+.animate-fade-in {
+  animation: fadeIn 0.5s var(--anim-ease) both;
+}
+
+/* ── animate-pulse-slow ─────────────────────────────────── */
+.animate-pulse-slow {
+  animation: goldGlow 2s ease-in-out infinite;
+}
+
+/* ── Content card ───────────────────────────────────────── */
+.content-card {
+  background: #0e0e0e;
+  border: 1px solid #1c1c1c;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.content-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(245,168,0,0.2) 50%, transparent 100%);
+}
