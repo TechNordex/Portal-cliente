@@ -39,17 +39,12 @@ export function Globe({
   config?: COBEOptions
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const phiRef = useRef(0)
-  const widthRef = useRef(0)
+  const phiRef    = useRef(0)
+  const widthRef  = useRef(0)
   const pointerInteracting = useRef<number | null>(null)
-  const pointerInteractionMovement = useRef(0)
 
-  const r = useMotionValue(0)
-  const rs = useSpring(r, {
-    mass: 1,
-    damping: 30,
-    stiffness: 100,
-  })
+  const r  = useMotionValue(0)
+  const rs = useSpring(r, { mass: 1, damping: 30, stiffness: 100 })
 
   const updatePointerInteraction = (value: number | null) => {
     pointerInteracting.current = value
@@ -61,38 +56,60 @@ export function Globe({
   const updateMovement = (clientX: number) => {
     if (pointerInteracting.current !== null) {
       const delta = clientX - pointerInteracting.current
-      pointerInteractionMovement.current = delta
       r.set(r.get() + delta / MOVEMENT_DAMPING)
     }
   }
 
   useEffect(() => {
-    const onResize = () => {
-      if (canvasRef.current) {
-        widthRef.current = canvasRef.current.offsetWidth
-      }
-    }
+    const canvas = canvasRef.current
+    if (!canvas) return
 
+    const onResize = () => {
+      widthRef.current = canvas.offsetWidth
+    }
     window.addEventListener("resize", onResize)
     onResize()
 
-    const globe = createGlobe(canvasRef.current!, {
+    // ─── cobe v2 API ─────────────────────────────────────────────────
+    // v2 retorna { update, destroy }.
+    // O callback "onRender" do v1 NÃO existe em v2 — a animação deve ser
+    // conduzida manualmente via globe.update({ phi }) + requestAnimationFrame.
+    const size = widthRef.current || 500
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const globe = createGlobe(canvas, {
       ...config,
-      width: widthRef.current * 2,
-      height: widthRef.current * 2,
-      onRender: (state) => {
-        if (!pointerInteracting.current) phiRef.current += 0.005
-        state.phi = phiRef.current + rs.get()
-        state.width = widthRef.current * 2
-        state.height = widthRef.current * 2
-      },
-    })
+      width:  size * 2,
+      height: size * 2,
+    }) as unknown as { update: (s: Partial<COBEOptions>) => void; destroy: () => void }
 
-    setTimeout(() => (canvasRef.current!.style.opacity = "1"), 0)
+    // Atualiza dimensões só no resize — nunca no loop de animação
+    const handleResize = () => {
+      const w = canvas.offsetWidth
+      if (w > 0) {
+        widthRef.current = w
+        globe.update({ width: w * 2, height: w * 2 })
+      }
+    }
+    window.addEventListener("resize", handleResize)
+
+    // Loop de animação — só atualiza phi para máxima performance (60 fps)
+    let rafId: number
+    const loop = () => {
+      if (!pointerInteracting.current) phiRef.current += 0.005
+      globe.update({ phi: phiRef.current + rs.get() })
+      rafId = requestAnimationFrame(loop)
+    }
+    rafId = requestAnimationFrame(loop)
+
+    setTimeout(() => { canvas.style.opacity = "1" }, 0)
+
     return () => {
       globe.destroy()
+      cancelAnimationFrame(rafId)
       window.removeEventListener("resize", onResize)
+      window.removeEventListener("resize", handleResize)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rs, config])
 
   return (
