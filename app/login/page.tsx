@@ -7,6 +7,7 @@ import { Loader2, ArrowLeft, Mail, Lock, Eye, EyeOff, ShieldCheck } from 'lucide
 import { Globe } from '@/components/ui/globe'
 import { StarField } from '@/components/login/StarField'
 import { TypewriterTitle } from '@/components/login/TypewriterTitle'
+import { ShootingStarCursor } from '@/components/login/ShootingStarCursor'
 import type { COBEOptions } from 'cobe'
 
 /* ─── Config do globo — markers minimalistas ───────────────────── */
@@ -126,6 +127,9 @@ export default function LoginPage() {
           display: 'flex',   /* ← sempre flex; mobile oculta via style tag abaixo */
         }}
       >
+        {/* Cursor interativo (estrela cadente) */}
+        <ShootingStarCursor />
+        
         {/* Estrelas interativas */}
         <StarField />
 
@@ -143,11 +147,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Layer 6a — Logo: posicionada no topo, independente do título */}
+        {/* Layer 6a — Logo: posicionada no topo, sem animação */}
         <div style={{
           position: 'absolute',
-          top: 0, /* Limite superior real do container */
-          marginTop: '-4%', /* Puxar ainda mais para cima compensando o padding do arquivo da imagem */
+          top: 0, 
+          marginTop: '-4%', /* Reduzido para não cortar o topo do logo fora da tela */
           left: 0,
           right: 0,
           zIndex: 6,
@@ -158,11 +162,11 @@ export default function LoginPage() {
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo-Nordex-Tech-remove-WSehNqsem3EZQ2jxpk0CKTKMU1hLtG.png"
             alt="Nordex Tech"
-            width={650}
-            height={480}
+            width={360}
+            height={270}
             priority
             style={{
-              width: 'clamp(400px, 50vw, 650px)', /* o tamanho colossal continua */
+              width: 'clamp(240px, 30vw, 360px)', /* Um pouco menor para caber perfeitamente na tela */
               height: 'auto',
               objectFit: 'contain',
               filter: 'drop-shadow(0 0 40px rgba(245,168,0,0.28)) drop-shadow(0 8px 32px rgba(0,0,0,0.8))',
@@ -201,14 +205,7 @@ export default function LoginPage() {
           background: 'linear-gradient(to top, #060606 18%, rgba(6,6,6,0.85) 55%, transparent 100%)',
         }} />
 
-        {/* Logo */}
-        <div style={{ position: 'absolute', top: '36px', left: '44px', zIndex: 5 }}>
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo-Nordex-Tech-remove-WSehNqsem3EZQ2jxpk0CKTKMU1hLtG.png"
-            alt="Nordex Tech" width={148} height={44}
-            style={{ height: '34px', width: 'auto', objectFit: 'contain' }}
-          />
-        </div>
+
 
         {/* Rodapé — stats minimalistas (sem título duplicado) */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 5, padding: '0 44px 36px' }}>
