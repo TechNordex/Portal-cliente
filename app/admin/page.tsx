@@ -23,7 +23,6 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import ImageCropperModal from '@/components/common/ImageCropper'
 import ChatTeam from '@/components/chat-team'
-import jsPDF from 'jspdf'
 import { useRef } from 'react'
 
 export default function AdminPage() {
@@ -669,6 +668,7 @@ export default function AdminPage() {
             setIsExporting(true);
 
             // Create PDF
+            const jsPDF = (await import('jspdf')).default;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const pageW = pdf.internal.pageSize.getWidth();
             const pageH = pdf.internal.pageSize.getHeight();

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 const MOVEMENT_DAMPING = 1400
 
-const GLOBE_CONFIG: COBEOptions = {
+const GLOBE_CONFIG: any = {
   width: 800,
   height: 800,
   onRender: () => {},
@@ -36,7 +36,7 @@ export function Globe({
   config = GLOBE_CONFIG,
 }: {
   className?: string
-  config?: COBEOptions
+  config?: any
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const phiRef    = useRef(0)
