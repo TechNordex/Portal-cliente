@@ -40,7 +40,8 @@ export function LoginGlobe() {
         { location: [51.5074,  -0.1278 ] as [number,number], size: 0.04 }, // London
         { location: [35.6762,  139.6503] as [number,number], size: 0.04 }, // Tokyo
       ],
-      onRender: (state) => {
+      // @ts-expect-error onRender doesn't exist in TS type but works
+      onRender: (state: any) => {
         state.phi = phi
         phi += 0.005
       },

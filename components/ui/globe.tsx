@@ -147,7 +147,7 @@ export function Globe({
       const now = performance.now() / 1000
 
       ctx.setTransform(1, 0, 0, 1, 0, 0)
-      ctx.clearRect(0, 0, overlay.width, overlay.height)
+      ctx.clearRect(0, 0, overlay!.width, overlay!.height)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
       markers.forEach((m) => {
