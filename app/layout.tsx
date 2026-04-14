@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: 'Nordex Tech — Portal do Cliente',
   description:
     'Portal exclusivo para clientes Nordex Tech. Acompanhe seus projetos, atualizações e comunicações em tempo real.',
+  icons: {
+    icon: '/favicon-cropped.png',
+    apple: '/favicon-cropped.png',
+  },
 }
 
 export const viewport: Viewport = {
