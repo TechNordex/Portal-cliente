@@ -11,129 +11,252 @@ export function ShootingStarCursor() {
     const ctx = canvas.getContext('2d', { alpha: true })
     if (!ctx) return
 
-    let width = 0
+    let width  = 0
     let height = 0
-    let mouse = { x: -100, y: -100 }
-    let particles: { x: number; y: number; age: number; maxAge: number; size: number; baseSpeedX: number; baseSpeedY: number }[] = []
-    let lastMouse = { x: -100, y: -100 }
 
-    const setSize = () => {
-      const parent = canvas.parentElement
-      if (parent) {
-        width = parent.clientWidth
-        height = parent.clientHeight
-        canvas.width = width
-        canvas.height = height
-      }
+    /* ── Posições ─────────────────────────────────── */
+    const target = { x: -400, y: -400 }   // mouse real
+    const smooth = { x: -400, y: -400 }   // posição suavizada (lerp)
+    const prev   = { x: -400, y: -400 }   // frame anterior → velocidade
+
+    /* ── Trail: array de pontos circulares ─────────── */
+    const TRAIL_MAX = 52
+    const trail: { x: number; y: number }[] = []
+
+    /* ── Faíscas ────────────────────────────────────── */
+    interface Spark {
+      x: number; y: number
+      vx: number; vy: number
+      life: number
+      size: number
+      gold: boolean
     }
-    setSize()
-    window.addEventListener('resize', setSize)
+    const sparks: Spark[] = []
 
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      lastMouse.x = mouse.x
-      lastMouse.y = mouse.y
-      mouse.x = e.clientX - rect.left
-      mouse.y = e.clientY - rect.top
+    /* ── Estado global ──────────────────────────────── */
+    let inside      = false
+    let alpha       = 0
+    let alphaTarget = 0
 
-      // Calculate velocity of mouse
-      const vx = mouse.x - lastMouse.x
-      const vy = mouse.y - lastMouse.y
-      const speed = Math.sqrt(vx * vx + vy * vy)
+    /* ── Canvas sizing ──────────────────────────────── */
+    const resize = () => {
+      const p = canvas.parentElement
+      if (!p) return
+      const dpr = window.devicePixelRatio || 1
+      width  = p.clientWidth
+      height = p.clientHeight
+      canvas.width  = width  * dpr
+      canvas.height = height * dpr
+      canvas.style.width  = `${width}px`
+      canvas.style.height = `${height}px`
+      ctx.resetTransform()
+      ctx.scale(dpr, dpr)
+    }
+    resize()
 
-      // Spawn particles when mouse moves
-      // More particles if moving faster
-      const spawnCount = Math.min(Math.floor(speed / 2), 10) + 1
-      for (let i = 0; i < spawnCount; i++) {
-        // Interpolate position along the path for smoother trails
-        const t = Math.random()
-        const px = lastMouse.x + vx * t
-        const py = lastMouse.y + vy * t
-        
-        particles.push({
-          x: px + (Math.random() - 0.5) * 4,
-          y: py + (Math.random() - 0.5) * 4,
-          age: 0,
-          maxAge: 20 + Math.random() * 25, // 20-45 frames
-          size: 0.5 + Math.random() * 2.5,
-          baseSpeedX: (Math.random() - 0.5) * 0.5,
-          baseSpeedY: (Math.random() - 0.5) * 0.5 + 0.2 // slight drift down
+    const ro = new ResizeObserver(resize)
+    const parent = canvas.parentElement
+    if (parent) {
+      ro.observe(parent)
+      /* ── Garante cursor none em TODOS os filhos ─── */
+      parent.style.setProperty('cursor', 'none', 'important')
+    }
+
+    /* ── Burst radial de entrada ────────────────────── */
+    function burst(cx: number, cy: number) {
+      const N = 16
+      for (let i = 0; i < N; i++) {
+        const angle = (i / N) * Math.PI * 2 + Math.random() * 0.3
+        const spd   = 1.0 + Math.random() * 3.5
+        sparks.push({
+          x: cx, y: cy,
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd,
+          life: 1,
+          size: 1.0 + Math.random() * 2.4,
+          gold: Math.random() > 0.35,
         })
       }
     }
 
-    const parent = canvas.parentElement
-    if (parent) {
-      parent.addEventListener('mousemove', onMouseMove)
-      // Oculta o cursor nativo apenas quando o mouse se move sobre o painel
-      parent.style.cursor = 'none' 
+    /* ── Eventos ────────────────────────────────────── */
+    const onMove = (e: MouseEvent) => {
+      const r = canvas.getBoundingClientRect()
+      target.x = e.clientX - r.left
+      target.y = e.clientY - r.top
     }
 
-    const onMouseLeave = () => {
-      mouse.x = -100
-      mouse.y = -100
-    }
-    if (parent) {
-      parent.addEventListener('mouseleave', onMouseLeave)
+    const onEnter = (e: MouseEvent) => {
+      inside      = true
+      alphaTarget = 1
+      const r  = canvas.getBoundingClientRect()
+      const ex = e.clientX - r.left
+      const ey = e.clientY - r.top
+      // Não deixa o smooth disparar do corner errado
+      smooth.x = prev.x = target.x = ex
+      smooth.y = prev.y = target.y = ey
+      trail.length = 0
+      burst(ex, ey)
     }
 
+    const onLeave = () => {
+      inside      = false
+      alphaTarget = 0
+      target.x    = -400
+      target.y    = -400
+    }
+
+    if (parent) {
+      parent.addEventListener('mousemove',  onMove,  { passive: true })
+      parent.addEventListener('mouseenter', onEnter, { passive: true })
+      parent.addEventListener('mouseleave', onLeave, { passive: true })
+    }
+
+    /* ── Loop de animação ───────────────────────────── */
     let raf: number
-    const animate = () => {
+
+    const tick = () => {
       ctx.clearRect(0, 0, width, height)
 
-      // Draw trail particles
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i]
-        p.age++
-        
-        p.x += p.baseSpeedX
-        p.y += p.baseSpeedY
+      /* Alpha global (fade in rápido, fade out devagar) */
+      const aSpd = inside ? 0.12 : 0.055
+      alpha += (alphaTarget - alpha) * aSpd
 
-        if (p.age > p.maxAge) {
-          particles.splice(i, 1)
-          continue
+      /* Quando totalmente fora e invisible: apenas loop */
+      if (alpha < 0.003 && !inside) {
+        trail.length = 0
+        raf = requestAnimationFrame(tick)
+        return
+      }
+
+      /* ── Velocidade do mouse ─────────────── */
+      prev.x = smooth.x
+      prev.y = smooth.y
+
+      /* Lerp duplo: posição + sobreshooting amortecido */
+      const lerpBase = 0.14
+      smooth.x += (target.x - smooth.x) * lerpBase
+      smooth.y += (target.y - smooth.y) * lerpBase
+
+      const vx    = smooth.x - prev.x
+      const vy    = smooth.y - prev.y
+      const speed = Math.sqrt(vx * vx + vy * vy)
+      const sN    = Math.min(1, speed / 9)          // normalizado 0…1
+
+      /* ── Trail ──────────────────────────── */
+      if (inside || trail.length > 0) {
+        trail.unshift({ x: smooth.x, y: smooth.y })
+        if (!inside) trail.pop()                     // drena ao sair
+      }
+      if (trail.length > TRAIL_MAX) trail.pop()
+
+      /* Trail — linhas retas segmentadas (look original) */
+      if (trail.length > 1) {
+        for (let i = 0; i < trail.length - 1; i++) {
+          const p1    = trail[i]
+          const p2    = trail[i + 1]
+          const ratio = 1 - i / trail.length
+          const a     = ratio * alpha
+
+          /* Corpo dourado */
+          ctx.beginPath()
+          ctx.lineCap  = 'round'
+          ctx.lineJoin = 'round'
+          ctx.moveTo(p1.x, p1.y)
+          ctx.lineTo(p2.x, p2.y)
+          ctx.strokeStyle = `rgba(245,168,0,${(a * (0.45 + sN * 0.18)).toFixed(3)})`
+          ctx.lineWidth   = (4 + sN * 2) * ratio
+          ctx.stroke()
+
+          /* Núcleo branco fino central */
+          ctx.beginPath()
+          ctx.moveTo(p1.x, p1.y)
+          ctx.lineTo(p2.x, p2.y)
+          ctx.strokeStyle = `rgba(255,255,255,${(a * (0.30 + sN * 0.12)).toFixed(3)})`
+          ctx.lineWidth   = 1.5 * ratio
+          ctx.stroke()
         }
+      }
 
-        const opacity = Math.max(0, 1 - (p.age / p.maxAge))
+      /* ── Faíscas ─────────────────────────── */
+      /* Emissão contínua em movimento rápido */
+      if (inside && speed > 1.8 && Math.random() > 0.65) {
+        sparks.push({
+          x: smooth.x, y: smooth.y,
+          vx: (Math.random() - 0.5) * 2.8,
+          vy: (Math.random() - 0.5) * 2.8,
+          life: 1,
+          size: 0.7 + Math.random() * 1.6,
+          gold: Math.random() > 0.3,
+        })
+      }
+
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i]
+        s.x  += s.vx
+        s.y  += s.vy
+        s.vx *= 0.90
+        s.vy *= 0.90
+        s.life -= 0.030
+        if (s.life <= 0) { sparks.splice(i, 1); continue }
+        const sa = s.life * s.life * alpha
         ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size * opacity, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(245, 168, 0, ${opacity * 0.9})`
-        ctx.shadowBlur = 6 * opacity
-        ctx.shadowColor = '#F5A800'
+        ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2)
+        ctx.fillStyle = s.gold
+          ? `rgba(245,168,0,${(sa * 0.88).toFixed(3)})`
+          : `rgba(255,255,255,${(sa * 0.70).toFixed(3)})`
         ctx.fill()
-        ctx.shadowBlur = 0
       }
 
-      // Draw the "Star" cursor head
-      if (mouse.x >= 0 && mouse.y >= 0) {
-         // Glow
-         ctx.beginPath()
-         ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2)
-         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-         ctx.shadowBlur = 15
-         ctx.shadowColor = '#F5A800'
-         ctx.fill()
-         
-         // Core
-         ctx.beginPath()
-         ctx.arc(mouse.x, mouse.y, 1.5, 0, Math.PI * 2)
-         ctx.fillStyle = '#fff'
-         ctx.shadowBlur = 0
-         ctx.fill()
+      /* ── Cabeça ──────────────────────────── */
+      const x  = smooth.x
+      const y  = smooth.y
+      const ha = alpha
+
+      /* Glow externo — raio cresce com velocidade */
+      const gR = 11 + sN * 7
+      const g  = ctx.createRadialGradient(x, y, 0, x, y, gR)
+      g.addColorStop(0,    `rgba(255,255,255,${(0.88 * ha).toFixed(3)})`)
+      g.addColorStop(0.28, `rgba(245,168,0,${(0.55 * ha).toFixed(3)})`)
+      g.addColorStop(0.70, `rgba(245,168,0,${(0.10 * ha).toFixed(3)})`)
+      g.addColorStop(1,    'rgba(245,168,0,0)')
+      ctx.fillStyle = g
+      ctx.beginPath()
+      ctx.arc(x, y, gR, 0, Math.PI * 2)
+      ctx.fill()
+
+      /* Núcleo sólido */
+      ctx.beginPath()
+      ctx.arc(x, y, 1.7, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(255,255,255,${ha.toFixed(3)})`
+      ctx.fill()
+
+      /* Cruz de flare */
+      if (ha > 0.35) {
+        const fl = 6 + sN * 5
+        ctx.beginPath()
+        ctx.strokeStyle = `rgba(255,255,255,${(0.38 * ha).toFixed(3)})`
+        ctx.lineWidth   = 0.5
+        ctx.moveTo(x - fl, y); ctx.lineTo(x + fl, y)
+        ctx.moveTo(x, y - fl); ctx.lineTo(x, y + fl)
+        ctx.stroke()
       }
 
-      raf = requestAnimationFrame(animate)
+      raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(animate)
 
+    raf = requestAnimationFrame(tick)
+
+    /* ── Cleanup ─────────────────────────────────────── */
     return () => {
-      window.removeEventListener('resize', setSize)
-      if (parent) {
-        parent.removeEventListener('mousemove', onMouseMove)
-        parent.removeEventListener('mouseleave', onMouseLeave)
-        parent.style.cursor = ''
-      }
       cancelAnimationFrame(raf)
+      ro.disconnect()
+      if (parent) {
+        parent.removeEventListener('mousemove',  onMove)
+        parent.removeEventListener('mouseenter', onEnter)
+        parent.removeEventListener('mouseleave', onLeave)
+        parent.style.removeProperty('cursor')
+      }
     }
   }, [])
 
@@ -141,10 +264,11 @@ export function ShootingStarCursor() {
     <canvas
       ref={canvasRef}
       style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 9999, // Fica sobre tudo no painel esquerdo
-        pointerEvents: 'none', // Permite que os cliques passem (ex: arrastar o globo)
+        position:      'absolute',
+        inset:         0,
+        zIndex:        9999,
+        pointerEvents: 'none',
+        cursor:        'none',
       }}
     />
   )

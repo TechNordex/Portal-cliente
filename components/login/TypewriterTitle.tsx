@@ -88,21 +88,22 @@ export function TypewriterTitle() {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor:  'transparent',
           backgroundClip:       'text',
-          filter:               'drop-shadow(0 0 18px rgba(245,168,0,0.6))',
+          filter:               'drop-shadow(0 0 12px rgba(245,168,0,0.4))',
+          animation:            'pulseGlow 3s ease-in-out infinite',
         }}>
           {displayed}
         </span>
         <span style={{
           display:      'inline-block',
-          width:        '4px',
-          height:       'clamp(32px, 4.8vw, 64px)',
+          width:        '3px',
+          height:       '0.9em',
           background:   '#F5A800',
-          borderRadius: '2px',
-          marginLeft:   '4px',
-          boxShadow:    '0 0 14px rgba(245,168,0,0.8)',
+          borderRadius: '4px',
+          marginLeft:   '6px',
+          boxShadow:    '0 0 15px rgba(245,168,0,0.8)',
           flexShrink:   0,
-          alignSelf:    'center',
-          animation:    'smoothBlink 0.9s infinite cubic-bezier(0.4, 0, 0.6, 1)',
+          opacity:      1,
+          animation:    'smoothBlink 1.1s step-end infinite',
         }} />
       </div>
 
@@ -110,6 +111,10 @@ export function TypewriterTitle() {
         @keyframes smoothBlink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { filter: drop-shadow(0 0 12px rgba(245,168,0,0.4)); }
+          50% { filter: drop-shadow(0 0 20px rgba(245,168,0,0.6)); }
         }
       `}</style>
     </div>
