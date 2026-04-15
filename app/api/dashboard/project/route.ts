@@ -44,6 +44,7 @@ export async function GET() {
                     feedback, 
                     viewed_at, 
                     preview_url, 
+                    hours_spent,
                     created_at,
                     revision_of
                  FROM project_updates 

@@ -14,7 +14,7 @@ import {
     LogOut, ExternalLink, Loader2, Link as LinkIcon,
     FileText, Activity, Info, MessageSquareText,
     Save, Check, X, ThumbsUp, ThumbsDown, Clock, AlertCircle, Users, Menu,
-    CheckCircle2, RefreshCw, Timer, MessageCircle
+    CheckCircle2, RefreshCw, Timer, MessageCircle, Search
 } from 'lucide-react'
 import { ProjectTracker } from '@/components/project-tracker'
 import type { Project, ProjectUpdate } from '@/lib/types'
@@ -22,6 +22,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import NordyAssistant from '@/components/nordy-assistant'
 import ChatTeam from '@/components/chat-team'
+import { MediaLightbox } from '@/components/dashboard/MediaLightbox'
 import confetti from 'canvas-confetti'
 
 function useTypewriter(target: string, { speed = 70, startDelay = 300 } = {}) {
@@ -55,10 +56,10 @@ function useTypewriter(target: string, { speed = 70, startDelay = 300 } = {}) {
     return { text, isDone }
 }
 
-const formatHours = (totalMinutes: number | undefined) => {
-    if (!totalMinutes || isNaN(totalMinutes) || totalMinutes === 0) return null;
-    const h = Math.floor(totalMinutes / 60);
-    const m = Math.round(totalMinutes % 60);
+const formatHours = (hoursVal: number | undefined) => {
+    if (!hoursVal || isNaN(hoursVal) || hoursVal <= 0) return null;
+    const h = Math.floor(hoursVal);
+    const m = Math.round((hoursVal - h) * 60);
     if (h > 0 && m > 0) return `${h}h ${m}m`;
     if (h > 0) return `${h}h`;
     return `${m}m`;
@@ -156,6 +157,13 @@ export default function DashboardPage() {
 
     // Real-time listener
     useRealtime()
+
+    // Lightbox State
+    const [lightboxData, setLightboxData] = useState<{ url: string, title: string } | null>(null)
+
+    // Filter and Search State
+    const [searchQuery, setSearchQuery] = useState('')
+    const [filterType, setFilterType] = useState<string>('all')
 
     useEffect(() => {
         if (jsonData) {
@@ -341,7 +349,23 @@ export default function DashboardPage() {
         String(u.project_id).trim().toLowerCase() === String(activeProjectId).trim().toLowerCase()
     ) || []
 
-    const hasUnviewedUpdates = updates.some((u: any) => u.preview_url && !u.viewed_at)
+    const filteredUpdates = updates.filter((u: any) => {
+        const query = searchQuery.trim().toLowerCase()
+        const matchesSearch = !query || 
+            u.title?.toLowerCase().includes(query) || 
+            u.message?.toLowerCase().includes(query)
+            
+        if (!matchesSearch) return false
+        
+        if (filterType === 'all') return true
+        if (filterType === 'pending') return u.status === 'pending'
+        if (filterType === 'approved') return u.status === 'authorized'
+        if (filterType === 'correction') return Boolean(u.revision_of)
+        
+        return true
+    })
+
+    const hasUnviewedUpdates = filteredUpdates.some((u: any) => u.preview_url && !u.viewed_at)
 
     // --- Mini-Dashboard Metrics ---
     const totalUpdates = updates.length;
@@ -508,7 +532,7 @@ export default function DashboardPage() {
                                         </button>
                                     </div>
                                     <div className="flex items-center px-1 -space-x-2.5 overflow-hidden">
-                                        {project.squad.map((member: any, i: number) => (
+                                        {project.squad.slice(0, 4).map((member: any, i: number) => (
                                             <div
                                                 key={i}
                                                 className="inline-block h-9 w-9 rounded-full bg-[#1a1a1a] overflow-hidden cursor-help transition-all duration-200 hover:scale-110 hover:z-20 relative"
@@ -522,10 +546,12 @@ export default function DashboardPage() {
                                                 )}
                                             </div>
                                         ))}
-                                        <div className="flex items-center justify-center h-9 w-9 rounded-full overflow-hidden text-[9px] font-black"
-                                            style={{ background: 'rgba(245,168,0,0.1)', color: '#F5A800', border: '2px solid #0a0a0a', boxShadow: '0 0 0 1px rgba(245,168,0,0.2)' }}>
-                                            +{project.squad.length}
-                                        </div>
+                                        {project.squad.length > 4 && (
+                                            <div className="flex items-center justify-center h-9 w-9 rounded-full overflow-hidden text-[9px] font-black z-10"
+                                                style={{ background: 'rgba(245,168,0,0.1)', color: '#F5A800', border: '2px solid #0a0a0a', boxShadow: '0 0 0 1px rgba(245,168,0,0.2)' }}>
+                                                +{project.squad.length - 4}
+                                            </div>
+                                        )}
                                     </div>
                                     <p className="px-1 text-[11px] leading-relaxed" style={{ color: '#444' }}>
                                         Seu Squad dedicado trabalhando em tempo real.
@@ -688,22 +714,59 @@ export default function DashboardPage() {
                                             )}
                                         </div>
                                     </div>
+                                    
+                                    {/* Filters Bar */}
+                                    <div className="px-5 sm:px-8 py-3 border-b border-[#181818] flex flex-col sm:flex-row sm:items-center gap-4 bg-[#0a0a0a]">
+                                        <div className="relative flex-1">
+                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                                            <input 
+                                                type="text" 
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                placeholder="Buscar em updates..." 
+                                                className="w-full h-9 pl-9 pr-4 rounded-lg text-[12px] text-white placeholder-gray-500 bg-[#121212] border border-[#222] focus:border-[#F5A800] focus:ring-1 focus:ring-[#F5A800] outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                                            {[
+                                                { id: 'all', label: 'Todos' },
+                                                { id: 'pending', label: 'Pendentes' },
+                                                { id: 'approved', label: 'Aprovados' },
+                                                { id: 'correction', label: 'Ajustes' }
+                                            ].map(filter => (
+                                                <button
+                                                    key={filter.id}
+                                                    onClick={() => setFilterType(filter.id)}
+                                                    className={`px-3 py-1.5 rounded-md text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${filterType === filter.id 
+                                                        ? 'bg-[#F5A800]/10 text-[#F5A800] border border-[#F5A800]/30' 
+                                                        : 'bg-[#121212] text-gray-400 border border-[#222] hover:bg-[#1a1a1a] hover:text-gray-200'}`}
+                                                >
+                                                    {filter.label}
+                                                    {filterType === filter.id && filter.id !== 'all' && (
+                                                        <span className="w-4 h-4 flex items-center justify-center rounded-full bg-[#F5A800]/20 text-[#F5A800] text-[9px] leading-none">
+                                                            {filteredUpdates.length}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
                                     {/* Feed Content */}
                                     <div className="flex-1 overflow-y-auto custom-scrollbar px-5 sm:px-8 py-8 overscroll-contain">
-                                        {updates?.length === 0 ? (
+                                        {filteredUpdates?.length === 0 ? (
                                             <div className="h-[400px] flex flex-col items-center justify-center text-center">
                                                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 shimmer-bg"
                                                     style={{ border: '1px solid rgba(245,168,0,0.1)' }}>
-                                                    <Info size={22} style={{ color: 'rgba(245,168,0,0.4)' }} />
+                                                    <Search size={22} style={{ color: 'rgba(245,168,0,0.4)' }} />
                                                 </div>
-                                                <p className="text-[15px] font-bold text-white mb-2">Nenhuma atualização ainda.</p>
-                                                <p className="text-[12px] max-w-[240px] leading-relaxed" style={{ color: '#444' }}>Conforme o projeto avança, as novidades serão registradas aqui.</p>
+                                                <p className="text-[15px] font-bold text-white mb-2">Nenhuma atualização encontrada.</p>
+                                                <p className="text-[12px] max-w-[240px] leading-relaxed" style={{ color: '#444' }}>Tente remover os filtros ou buscar por outras palavras-chave.</p>
                                             </div>
                                         ) : (
                                             <div className="relative ml-4 space-y-8 pb-6"
                                                 style={{ borderLeft: '1px solid rgba(245,168,0,0.12)' }}>
-                                                {updates?.map((upd: ProjectUpdate) => {
+                                                {filteredUpdates?.map((upd: ProjectUpdate) => {
                                                             const isEditing = editingNoteId === upd.id
                                                             const hasNote = Boolean(upd.client_note)
 
@@ -816,32 +879,34 @@ export default function DashboardPage() {
                                                                             </div>
                                                                         )}
 
-                                                                        {/* Authorization Buttons */}
-                                                                        {upd.status === 'pending' && (
-                                                                            <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                                                                <button
-                                                                                    disabled={approvingUpdateId === upd.id}
-                                                                                    onClick={() => handleUpdateStatus(upd.id, 'authorized')}
-                                                                                    className="h-8 px-4 rounded-lg text-[11px] font-black flex items-center gap-1.5 transition-all"
-                                                                                    style={{ background: '#22c55e', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}
-                                                                                >
-                                                                                    {approvingUpdateId === upd.id ? <Loader2 size={12} className="animate-spin" /> : <ThumbsUp size={12} />}
-                                                                                    Aprovar Etapa
-                                                                                </button>
-                                                                                <button
-                                                                                    disabled={approvingUpdateId === upd.id}
-                                                                                    onClick={() => setShowUpdateRejectionFormId(upd.id)}
-                                                                                    className="h-8 px-4 rounded-lg text-[11px] font-black flex items-center gap-1.5 transition-all"
-                                                                                    style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}
-                                                                                >
-                                                                                    <ThumbsDown size={12} />
-                                                                                    Solicitar Ajuste
-                                                                                </button>
+                                                                                {/* Bottom Actions Area */}
+                                                                        {(upd.status === 'pending' || upd.preview_url) && (
+                                                                            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                                                                {upd.status === 'pending' && (
+                                                                                    <>
+                                                                                        <button
+                                                                                            disabled={approvingUpdateId === upd.id}
+                                                                                            onClick={() => handleUpdateStatus(upd.id, 'authorized')}
+                                                                                            className="h-8 px-4 rounded-lg text-[11px] font-black flex items-center gap-1.5 transition-all"
+                                                                                            style={{ background: '#22c55e', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}
+                                                                                        >
+                                                                                            {approvingUpdateId === upd.id ? <Loader2 size={12} className="animate-spin" /> : <ThumbsUp size={12} />}
+                                                                                            Aprovar Etapa
+                                                                                        </button>
+                                                                                        <button
+                                                                                            disabled={approvingUpdateId === upd.id}
+                                                                                            onClick={() => setShowUpdateRejectionFormId(upd.id)}
+                                                                                            className="h-8 px-4 rounded-lg text-[11px] font-black flex items-center gap-1.5 transition-all"
+                                                                                            style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}
+                                                                                        >
+                                                                                            <ThumbsDown size={12} />
+                                                                                            Solicitar Ajuste
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+
                                                                                 {upd.preview_url && (
-                                                                                    <a
-                                                                                        href={upd.preview_url}
-                                                                                        target="_blank"
-                                                                                        rel="noreferrer"
+                                                                                    <button
                                                                                         onClick={() => {
                                                                                             if (!upd.viewed_at) {
                                                                                                 markAsViewed(upd.id);
@@ -850,15 +915,17 @@ export default function DashboardPage() {
                                                                                                     allUpdates: prev.allUpdates.map((u: ProjectUpdate) => u.id === upd.id ? { ...u, viewed_at: new Date().toISOString() } : u)
                                                                                                 } : prev, false);
                                                                                             }
+                                                                                            setLightboxData({ url: upd.preview_url as string, title: upd.title })
                                                                                         }}
-                                                                                        className="h-8 px-3 rounded-lg flex items-center gap-1.5 transition-all ml-auto text-[11px] font-black"
+                                                                                        className={`h-8 px-4 justify-center rounded-lg flex items-center gap-2 transition-all text-[11px] font-black ${upd.status === 'pending' ? 'ml-auto' : ''}`}
                                                                                         style={!upd.viewed_at
-                                                                                            ? { background: '#F5A800', color: '#000', boxShadow: '0 0 16px rgba(245,168,0,0.35)' }
-                                                                                            : { background: 'rgba(255,255,255,0.04)', color: '#666', border: '1px solid rgba(255,255,255,0.08)' }
+                                                                                            ? { background: 'linear-gradient(90deg, #F5A800, #ffce00)', color: '#000', boxShadow: '0 0 20px rgba(245,168,0,0.4)', border: 'none' }
+                                                                                            : { background: 'rgba(245,168,0,0.1)', color: '#F5A800', border: '1px solid rgba(245,168,0,0.25)' }
                                                                                         }
                                                                                     >
-                                                                                        <LinkIcon size={12} /> Visualizar Build
-                                                                                    </a>
+                                                                                        <LinkIcon size={13} /> 
+                                                                                        {!upd.viewed_at ? 'Visualizar Nova Entrega' : 'Acessar Entrega'}
+                                                                                    </button>
                                                                                 )}
                                                                             </div>
                                                                         )}
@@ -1123,6 +1190,13 @@ export default function DashboardPage() {
 
             {/* Virtual Assistant */}
             <NordyAssistant project={project} tourCompleted={data?.tourCompleted} tourEnabled={!showWelcome} />
+            
+            <MediaLightbox 
+                isOpen={!!lightboxData} 
+                url={lightboxData?.url || null} 
+                title={lightboxData?.title} 
+                onClose={() => setLightboxData(null)} 
+            />
         </div>
     )
 }

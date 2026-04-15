@@ -131,3 +131,53 @@ export async function sendTeamFeedbackEmail({
     html: getBaseTemplate(content)
   })
 }
+
+/**
+ * Notify the Client with the Final Project Report when completed
+ */
+export async function sendProjectCompletionEmail({
+  to,
+  clientName,
+  projectName
+}: {
+  to: string,
+  clientName: string,
+  projectName: string
+}) {
+  const resend = getResend()
+  const content = `
+    <h2 style="font-size: 24px; color: ${NORDEX_GOLD}; margin-top: 0; text-align: center;">Projeto Finalizado com Sucesso! 🚀</h2>
+    <p style="color: #ffffff; font-size: 16px; line-height: 1.6; text-align: center;">
+      Parabéns, <strong>${clientName}</strong>!
+    </p>
+    <p style="color: ${TEXT_MUTED}; font-size: 15px; line-height: 1.6; text-align: center;">
+      O projeto <strong>${projectName}</strong> chegou oficialmente à sua etapa final e todas as entregas foram aprovadas por você.
+    </p>
+    
+    <div style="background-color: #222222; padding: 24px; border-radius: 8px; border: 1px solid rgba(245,168,0,0.3); margin: 32px 0; text-align: center;">
+      <p style="margin: 0 0 16px 0; font-size: 18px; color: #ffffff; font-weight: bold;">O que acontece agora?</p>
+      
+      <ul style="color: ${TEXT_MUTED}; font-size: 14px; text-align: left; line-height: 1.8; padding-left: 20px;">
+        <li>Seu time Nordex fará o <strong>handover técnico</strong> do projeto para seus servidores finais (se aplicável).</li>
+        <li>Emitiremos o <strong>certificado de garantia técnica</strong> de 30 dias referentes ao software entregue.</li>
+        <li>Todo histórico ficará salvo perpetuamente no seu Portal.</li>
+      </ul>
+    </div>
+
+    <p style="font-size: 14px; color: ${TEXT_MUTED}; text-align: center;">
+      Agradecemos por construir o futuro com a Nordex Tech.<br>
+      Fique à vontade para acessar o portal e visualizar suas métricas e entregáveis a qualquer momento.
+    </p>
+
+    <div style="text-align: center; margin-top: 32px;">
+      <a href="https://nordex.tech/login" style="display: inline-block; background-color: ${NORDEX_GOLD}; color: #000000; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(245, 168, 0, 0.2);">Acessar Meu Portal</a>
+    </div>
+  `
+
+  return resend.emails.send({
+    from: 'Nordex Portal <contato@nordex.tech>',
+    to: [to],
+    subject: `🎉 Projeto Finalizado: ${projectName} - Relatório de Entrega`,
+    html: getBaseTemplate(content)
+  })
+}

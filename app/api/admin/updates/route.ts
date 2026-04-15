@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
         }
 
         const timeVal = minutes_spent != null 
-            ? Math.round(Number(minutes_spent)) 
-            : (hours_spent != null ? Math.round(Number(hours_spent)) : null)
+            ? Number(minutes_spent) / 60 
+            : (hours_spent != null ? Number(hours_spent) : null)
 
         // Insert the update (with optional revision_of link)
         const insertResult = await db.query(
@@ -153,8 +153,8 @@ export async function PUT(req: NextRequest) {
         }
 
         const timeVal = minutes_spent != null 
-            ? Math.round(Number(minutes_spent)) 
-            : (hours_spent != null ? Math.round(Number(hours_spent)) : null)
+            ? Number(minutes_spent) / 60 
+            : (hours_spent != null ? Number(hours_spent) : null)
 
         console.log('[admin/updates PUT] Executando query para ID:', id)
         await db.query(

@@ -13,7 +13,7 @@ import useSWR, { mutate } from 'swr'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { LogOut, Plus, Activity, Send, Loader2, X, Edit, Users, Shield, User, FolderKanban, CheckCircle2, Clock, MessageSquareText, FileEdit, Link as LinkIcon, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, AlertCircle, Trash2, Search, SlidersHorizontal, Briefcase, FileDown, Upload, Mail, Eye, RefreshCw, LayoutDashboard, BarChart2, UsersRound, Timer, TrendingUp, Menu, Check } from 'lucide-react'
+import { LogOut, Plus, Activity, Send, Loader2, X, Edit, Users, Shield, User, FolderKanban, CheckCircle2, Clock, MessageSquareText, FileEdit, Link as LinkIcon, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, AlertCircle, Trash2, Search, SlidersHorizontal, Briefcase, FileDown, Upload, Mail, Eye, RefreshCw, LayoutDashboard, BarChart2, UsersRound, Timer, TrendingUp, Menu, Check, Settings } from 'lucide-react'
 import type { Project, PortalUser, ProjectUpdate } from '@/lib/types'
 
 import { STAGES } from '@/lib/types'
@@ -73,6 +73,8 @@ export default function AdminPage() {
     const [showAddTeamMember, setShowAddTeamMember] = useState(false)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [resetTourLoading, setResetTourLoading] = useState<string | null>(null)
+    const [openUserMenuId, setOpenUserMenuId] = useState<string | null>(null)
+    const [userSearchQuery, setUserSearchQuery] = useState('')
     
     // Image Cropper States
     const [showCropper, setShowCropper] = useState(false)
@@ -1096,7 +1098,7 @@ export default function AdminPage() {
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
                                 { label: 'Projetos Ativos', value: activeProjects, sub: `${totalProjects} no total`, icon: <FolderKanban size={20} />, color: 'primary' },
-                                { label: 'Horas Registradas', value: `${totalHoursTracked}h`, sub: 'Esforço da equipe', icon: <Timer size={20} />, color: 'blue' },
+                                { label: 'Horas Registradas', value: `${Number(totalHoursTracked).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}h`, sub: 'Esforço da equipe', icon: <Timer size={20} />, color: 'blue' },
                                 { label: 'Updates este Mês', value: updatesThisMonth, sub: `${totalUpdatesAllTime} no total`, icon: <TrendingUp size={20} />, color: 'green' },
                                 { label: 'Aguardando Aprovação', value: pendingApproval, sub: 'Projetos em homo.', icon: <Clock size={20} />, color: pendingApproval > 0 ? 'amber' : 'muted' },
                             ].map((kpi, i) => (
@@ -1982,27 +1984,60 @@ export default function AdminPage() {
                 )}
                 {activeTab === 'users' && (
                      // Users Tab - keeping minimal and clean like before but with uniform style
-                    <div className="bg-card border border-border rounded-xl p-8 overflow-hidden animate-fade-in max-w-5xl mx-auto shadow-lg">
-                        <div className="flex justify-between items-center mb-8 border-b border-border/50 pb-5">
-                            <h3 className="text-[18px] font-semibold text-foreground">Relatório de Identidades</h3>
-                            <button onClick={() => setShowNewClient(true)} className="h-10 px-4 rounded-lg bg-primary text-primary-foreground text-[13px] font-semibold hover:opacity-90 inline-flex items-center gap-2">
-                                <Plus size={16}/> Novo Usuário
-                            </button>
+                    <div className="bg-card border border-border rounded-xl p-8 overflow-visible animate-fade-in max-w-5xl mx-auto shadow-lg mb-20">
+                        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b border-border/50 pb-5 gap-4">
+                            <h3 className="text-[18px] font-semibold text-foreground whitespace-nowrap">Relatório de Identidades</h3>
+                            
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <div className="relative flex-1 sm:w-64">
+                                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input 
+                                        type="text" 
+                                        value={userSearchQuery}
+                                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                                        placeholder="Buscar por nome ou email..." 
+                                        className="w-full h-10 pl-9 pr-4 rounded-lg text-[13px] text-foreground bg-background border border-border focus:border-primary outline-none transition-all placeholder:text-muted-foreground"
+                                    />
+                                </div>
+                                <button onClick={() => setShowNewClient(true)} className="h-10 px-4 rounded-lg bg-primary text-primary-foreground text-[13px] font-semibold hover:opacity-90 inline-flex items-center gap-2 whitespace-nowrap">
+                                    <Plus size={16}/> Novo Usuário
+                                </button>
+                            </div>
                         </div>
-                        {users.length === 0 ? (
-                            <div className="text-center py-10"><p className="text-[13px] text-muted-foreground">O banco de usuários está vazio.</p></div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-separate border-spacing-y-2">
-                                    <thead>
-                                        <tr className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground/60 font-black">
-                                            <th className="px-6 py-3 font-black text-left">Identidade / Responsável</th>
-                                            <th className="px-6 py-3 font-black text-center">Privilégio</th>
-                                            <th className="px-6 py-3 font-black text-right">Ações de Gestão</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-[13px]">
-                                        {users.map((u: PortalUser) => (
+
+                        {(() => {
+                            const filteredUsers = users.filter((u: PortalUser) => {
+                                const q = userSearchQuery.trim().toLowerCase()
+                                if (!q) return true
+                                return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+                            });
+
+                            if (users.length === 0) {
+                                return <div className="text-center py-10"><p className="text-[13px] text-muted-foreground">O banco de usuários está vazio.</p></div>
+                            }
+
+                            if (filteredUsers.length === 0) {
+                                return (
+                                    <div className="text-center py-16 bg-background rounded-xl border border-dashed border-border flex flex-col items-center">
+                                        <Search size={32} className="text-muted-foreground mb-3 opacity-30" />
+                                        <p className="text-[14px] font-semibold text-foreground">Nenhum usuário encontrado</p>
+                                        <p className="text-[12px] text-muted-foreground mt-1">Busca por "{userSearchQuery}" não retornou resultados.</p>
+                                    </div>
+                                )
+                            }
+
+                            return (
+                                <div className="w-full">
+                                    <table className="w-full text-left border-separate border-spacing-y-2">
+                                        <thead>
+                                            <tr className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground/60 font-black">
+                                                <th className="px-6 py-3 font-black text-left">Identidade / Responsável</th>
+                                                <th className="px-6 py-3 font-black text-center">Privilégio</th>
+                                                <th className="px-6 py-3 font-black text-right">Ações de Gestão</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-[13px]">
+                                            {filteredUsers.map((u: PortalUser) => (
                                             <tr key={u.id} className="group transition-all duration-300">
                                                 <td className="px-6 py-4 bg-secondary/5 border-l border-y border-border group-hover:bg-secondary/10 group-hover:border-primary/20 rounded-l-2xl transition-all">
                                                     <div className="flex items-center gap-4">
@@ -2029,40 +2064,57 @@ export default function AdminPage() {
                                                           </span>
                                                     }
                                                 </td>
-                                                <td className="px-6 py-4 bg-secondary/5 border-r border-y border-border group-hover:bg-secondary/10 group-hover:border-primary/20 rounded-r-2xl transition-all text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        {u.role === 'client' && (
-                                                            <button 
-                                                                onClick={() => handlePromoteUser(u)}
-                                                                className="h-9 w-9 flex items-center justify-center bg-primary/5 border border-primary/20 hover:bg-primary hover:text-primary-foreground rounded-xl transition-all text-primary shadow-sm"
-                                                                title="Promover para Equipe"
-                                                            >
-                                                                <Plus size={16} />
-                                                            </button>
+                                                <td className="px-6 py-4 bg-secondary/5 border-r border-y border-border group-hover:bg-secondary/10 group-hover:border-primary/20 rounded-r-2xl transition-all text-right relative">
+                                                    <div className="flex items-center justify-end">
+                                                        <button 
+                                                            onClick={e => {
+                                                                e.stopPropagation()
+                                                                setOpenUserMenuId(openUserMenuId === u.id ? null : u.id)
+                                                            }}
+                                                            className={`h-9 w-9 flex items-center justify-center rounded-xl transition-all shadow-sm border ${openUserMenuId === u.id ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-background/50 border-border hover:border-primary/50 text-muted-foreground hover:text-primary'}`}
+                                                            title="Opções do Usuário"
+                                                        >
+                                                            <Settings size={16} className={openUserMenuId === u.id ? "animate-spin-slow" : ""} />
+                                                        </button>
+
+                                                        {openUserMenuId === u.id && (
+                                                            <div className="absolute right-12 top-11 mt-1 w-48 bg-[#0f0f0f] border border-[#222] rounded-xl shadow-2xl z-50 flex flex-col p-2 animate-in fade-in zoom-in-95 duration-200"
+                                                                 style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(245,168,0,0.1)' }}>
+                                                                
+                                                                <div className="px-3 py-1.5 mb-1 border-b border-[#222]">
+                                                                    <p className="text-[10px] font-black uppercase tracking-widest text-[#666]">Gerenciar</p>
+                                                                </div>
+
+                                                                {u.role === 'client' && (
+                                                                    <button 
+                                                                        onClick={() => { handlePromoteUser(u); setOpenUserMenuId(null); }}
+                                                                        className="w-full h-9 px-3 flex items-center gap-2.5 rounded-lg text-[12px] font-semibold text-[#888] hover:text-primary hover:bg-primary/10 transition-colors"
+                                                                    >
+                                                                        <Plus size={14} /> Promover Equipe
+                                                                    </button>
+                                                                )}
+                                                                <button 
+                                                                    onClick={() => handleResetTour(u.id)} 
+                                                                    disabled={resetTourLoading === u.id}
+                                                                    className="w-full h-9 px-3 flex items-center gap-2.5 rounded-lg text-[12px] font-semibold text-[#888] hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+                                                                >
+                                                                    {resetTourLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} 
+                                                                    Resetar Tour
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => { setEditingUser(u); setEditUserName(u.name); setEditUserEmail(u.email); setEditUserRole(u.role); setEditUserPassword(''); setOpenUserMenuId(null); }} 
+                                                                    className="w-full h-9 px-3 flex items-center gap-2.5 rounded-lg text-[12px] font-semibold text-[#888] hover:text-white hover:bg-[#222] transition-colors"
+                                                                >
+                                                                    <Edit size={14} /> Editar Usuário
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => { setDeletingUser(u); setDeleteWarning(null); setOpenUserMenuId(null); }} 
+                                                                    className="w-full h-9 px-3 flex items-center gap-2.5 rounded-lg text-[12px] font-semibold text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-colors mt-1 border-t border-[#222] pt-2"
+                                                                >
+                                                                    <Trash2 size={14} /> Excluir Conta
+                                                                </button>
+                                                            </div>
                                                         )}
-                                                        <button 
-                                                            onClick={() => handleResetTour(u.id)} 
-                                                            disabled={resetTourLoading === u.id}
-                                                            className="h-9 px-3 flex items-center justify-center bg-background/50 border border-border hover:border-primary/50 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all gap-2 text-primary disabled:opacity-50 shadow-sm"
-                                                            title="Resetar Tour"
-                                                        >
-                                                            {resetTourLoading === u.id ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} 
-                                                            <span className="hidden xl:inline text-[10px]">Tour</span>
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => { setEditingUser(u); setEditUserName(u.name); setEditUserEmail(u.email); setEditUserRole(u.role); setEditUserPassword(''); }} 
-                                                            className="h-9 w-9 flex items-center justify-center bg-background/50 border border-border hover:border-primary/50 rounded-xl transition-all hover:text-primary shadow-sm"
-                                                            title="Editar Usuário"
-                                                        >
-                                                            <Edit size={14} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => { setDeletingUser(u); setDeleteWarning(null); }} 
-                                                            className="h-9 w-9 flex items-center justify-center bg-background/50 border border-red-500/20 hover:border-red-500 hover:bg-red-500/10 rounded-xl transition-all text-red-400 shadow-sm"
-                                                            title="Excluir Usuário"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -2070,7 +2122,8 @@ export default function AdminPage() {
                                     </tbody>
                                 </table>
                             </div>
-                        )}
+                        )
+                        })()}
                     </div>
                 )}
 
