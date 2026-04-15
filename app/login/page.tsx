@@ -20,12 +20,12 @@ const GLOBE_CFG: any = {
   diffuse: 1.1,
   mapSamples: 8000,
   mapBrightness: 5,
-  baseColor:   [0.25, 0.25, 0.25],
+  baseColor: [0.25, 0.25, 0.25],
   markerColor: [0.96, 0.66, 0.0],
-  glowColor:   [0.96, 0.66, 0.0],
+  glowColor: [0.96, 0.66, 0.0],
   markers: [
-    { location: [-8.0506,  -34.8781], size: 0, id: 'rec', label: 'Recife',          isHQ: true },
-    { location: [-22.9068, -43.1729], size: 0, id: 'rio', label: 'Rio de Janeiro'              },
+    { location: [-8.0506, -34.8781], size: 0, id: 'rec', label: 'Recife', isHQ: true },
+    { location: [-22.9068, -43.1729], size: 0, id: 'rio', label: 'Rio de Janeiro' },
   ],
 }
 
@@ -51,22 +51,22 @@ function FloatField({
       <label
         htmlFor={id}
         style={{
-          position:      'absolute',
-          left:          0,
-          top:           lifted ? '0px' : '32px',
-          fontSize:      lifted ? '10px' : '14px',
-          fontWeight:    lifted ? 600 : 400,
-          color:         focused
+          position: 'absolute',
+          left: 0,
+          top: lifted ? '0px' : '32px',
+          fontSize: lifted ? '10px' : '14px',
+          fontWeight: lifted ? 600 : 400,
+          color: focused
             ? 'rgba(245,168,0,0.75)'
             : lifted
-            ? 'rgba(255,255,255,0.32)'
-            : 'rgba(255,255,255,0.28)',
+              ? 'rgba(255,255,255,0.32)'
+              : 'rgba(255,255,255,0.28)',
           letterSpacing: lifted ? '0.12em' : '0.02em',
           textTransform: lifted ? 'uppercase' : 'none',
-          transition:    'top 0.22s cubic-bezier(0.22,1,0.36,1), font-size 0.22s, color 0.22s, letter-spacing 0.22s',
+          transition: 'top 0.22s cubic-bezier(0.22,1,0.36,1), font-size 0.22s, color 0.22s, letter-spacing 0.22s',
           pointerEvents: 'none',
-          userSelect:    'none',
-          lineHeight:    1,
+          userSelect: 'none',
+          lineHeight: 1,
         }}
       >
         {label}
@@ -84,16 +84,16 @@ function FloatField({
           disabled={disabled}
           autoComplete={id}
           style={{
-            flex:          1,
-            background:    'transparent',
-            border:        'none',
-            outline:       'none',
-            padding:       '10px 0',
-            fontSize:      '15px',
-            color:         '#f2f2f2',
-            fontFamily:    'Inter, system-ui, sans-serif',
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            padding: '10px 0',
+            fontSize: '15px',
+            color: '#f2f2f2',
+            fontFamily: 'Inter, system-ui, sans-serif',
             letterSpacing: '0.01em',
-            caretColor:    '#F5A800',
+            caretColor: '#F5A800',
           }}
         />
         {suffix}
@@ -101,7 +101,7 @@ function FloatField({
 
       {/* Linha de fundo */}
       <div style={{
-        height:     '1px',
+        height: '1px',
         background: focused
           ? 'linear-gradient(90deg, rgba(245,168,0,0.7) 0%, rgba(245,168,0,0.2) 100%)'
           : 'rgba(255,255,255,0.1)',
@@ -115,11 +115,11 @@ function FloatField({
 export default function LoginPage() {
   const router = useRouter()
 
-  const [email,       setEmail]       = useState('')
-  const [password,    setPassword]    = useState('')
-  const [showPass,    setShowPass]    = useState(false)
-  const [error,       setError]       = useState('')
-  const [loading,     setLoading]     = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   /** true quando o IntroOverlay chama onReveal → painéis ficam visíveis */
   const [sysRevealed, setSysRevealed] = useState(false)
   /** true quando a OrbitalStar completou a sua animação */
@@ -129,7 +129,7 @@ export default function LoginPage() {
   const realLogoWrapRef = useRef<HTMLDivElement>(null)
 
   const handleReveal = useCallback(() => setSysRevealed(true), [])
-  const handleDone   = useCallback(() => {/* handled */}, [])
+  const handleDone = useCallback(() => {/* handled */ }, [])
 
   /* Entrada do formulário — só anima após o sistema revelar */
   const formRef = useRef<HTMLDivElement>(null)
@@ -137,12 +137,12 @@ export default function LoginPage() {
     if (!sysRevealed) return
     const el = formRef.current
     if (!el) return
-    el.style.opacity   = '0'
+    el.style.opacity = '0'
     el.style.transform = 'translateY(18px)'
     const id = setTimeout(() => {
       el.style.transition = 'opacity 0.85s cubic-bezier(0.22,1,0.36,1), transform 0.85s cubic-bezier(0.22,1,0.36,1)'
-      el.style.opacity    = '1'
-      el.style.transform  = 'translateY(0)'
+      el.style.opacity = '1'
+      el.style.transform = 'translateY(0)'
     }, 200)
     return () => clearTimeout(id)
   }, [sysRevealed])
@@ -152,10 +152,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const res  = await fetch('/api/auth/login', {
-        method:  'POST',
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erro ao fazer login')
@@ -184,11 +184,11 @@ export default function LoginPage() {
       />
 
       <div style={{
-        minHeight:  '100vh',
+        minHeight: '100vh',
         background: '#060606',
-        display:    'flex',
+        display: 'flex',
         fontFamily: 'Inter, system-ui, sans-serif',
-        overflow:   'hidden',
+        overflow: 'hidden',
       }}>
 
         {/* ════════════════════════════════════════════════
@@ -197,17 +197,17 @@ export default function LoginPage() {
         <div
           id="login-left-panel"
           style={{
-            position:      'relative',
-            width:         '55%',
-            flexShrink:    0,
-            overflow:      'hidden',
-            background:    '#060606',
-            borderRight:   '1px solid rgba(245,168,0,0.06)',
-            display:       'flex',
+            position: 'relative',
+            width: '55%',
+            flexShrink: 0,
+            overflow: 'hidden',
+            background: '#060606',
+            borderRight: '1px solid rgba(245,168,0,0.06)',
+            display: 'flex',
             flexDirection: 'column',
             /* Revela com o sistema */
-            opacity:       sysRevealed ? 1 : 0,
-            transition:    panelTransition,
+            opacity: sysRevealed ? 1 : 0,
+            transition: panelTransition,
           }}
         >
           <ShootingStarCursor active={sysRevealed && orbitDone} />
@@ -244,9 +244,9 @@ export default function LoginPage() {
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 5, padding: '0 44px 36px' }}>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '48px', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
               {[
-                { value: '100%',  label: 'Transparência' },
-                { value: '24h',   label: 'Suporte'        },
-                { value: '99.9%', label: 'Uptime'         },
+                { value: '100%', label: 'Transparência' },
+                { value: '24h', label: 'Suporte' },
+                { value: '99.9%', label: 'Uptime' },
               ].map(s => (
                 <div key={s.label} style={{ textAlign: 'center' }}>
                   <p style={{ fontSize: '18px', fontWeight: 700, color: '#F5A800', lineHeight: 1 }}>{s.value}</p>
@@ -261,34 +261,49 @@ export default function LoginPage() {
             PAINEL DIREITO — Formulário clean
             ════════════════════════════════════════════════ */}
         <div style={{
-          flex:           1,
-          display:        'flex',
-          alignItems:     'center',
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
-          padding:        '48px 40px',
-          position:       'relative',
-          background:     '#060606',
+          padding: '48px 40px',
+          position: 'relative',
+          background: '#060606',
           /* Revela 180ms após o painel esquerdo */
-          opacity:        sysRevealed ? 1 : 0,
-          transition:     sysRevealed
+          opacity: sysRevealed ? 1 : 0,
+          transition: sysRevealed
             ? 'opacity 0.7s cubic-bezier(0.22,1,0.36,1) 0.18s'
             : 'none',
         }}>
           {/* Brilho ambiente */}
           <div style={{
-            position:      'absolute',
-            inset:         0,
+            position: 'absolute',
+            inset: 0,
             pointerEvents: 'none',
-            background:    'radial-gradient(ellipse 75% 55% at 50% 42%, rgba(245,168,0,0.025) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse 75% 55% at 50% 42%, rgba(245,168,0,0.025) 0%, transparent 70%)',
           }} />
 
           {/* Logo mobile only */}
           <div id="login-mobile-logo" style={{ display: 'none', position: 'absolute', top: '32px', left: '32px' }}>
             <Image
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo-Nordex-Tech-remove-WSehNqsem3EZQ2jxpk0CKTKMU1hLtG.png"
-              alt="Nordex Tech" width={120} height={36}
-              style={{ height: '26px', width: 'auto', objectFit: 'contain', opacity: 0.7 }}
+              alt="Nordex Tech" width={160} height={42}
+              style={{ height: '36px', width: 'auto', objectFit: 'contain', opacity: 0.9 }}
             />
+          </div>
+
+          {/* Minimalist Globe para Mobile na parte inferior */}
+          <div id="mobile-globe-wrap" style={{
+            display: 'none',
+            position: 'absolute',
+            bottom: '-45%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '180vw',
+            opacity: 0.25,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}>
+            <Globe config={GLOBE_CFG} className="relative inset-auto max-w-none" />
           </div>
 
           <div ref={formRef} style={{ width: '100%', maxWidth: '360px', position: 'relative', zIndex: 1 }}>
@@ -296,38 +311,38 @@ export default function LoginPage() {
             {/* ── Cabeçalho ── */}
             <div style={{ marginBottom: '52px' }}>
               <p style={{
-                fontSize:      '10px',
-                fontWeight:    700,
+                fontSize: '10px',
+                fontWeight: 700,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
-                color:         'rgba(245,168,0,0.45)',
-                marginBottom:  '16px',
+                color: 'rgba(245,168,0,0.45)',
+                marginBottom: '16px',
               }}>
                 Nordex Tech
               </p>
 
               <h1 style={{
-                fontSize:      'clamp(30px, 3.2vw, 42px)',
-                fontWeight:    800,
-                color:         '#ffffff',
+                fontSize: 'clamp(30px, 3.2vw, 42px)',
+                fontWeight: 800,
+                color: '#ffffff',
                 letterSpacing: '-0.035em',
-                lineHeight:    1.08,
-                margin:        '0 0 14px',
+                lineHeight: 1.08,
+                margin: '0 0 14px',
               }}>
                 Portal do{' '}
                 <span style={{
-                  background:           'linear-gradient(135deg, #F5A800 0%, #ffd966 100%)',
+                  background: 'linear-gradient(135deg, #F5A800 0%, #ffd966 100%)',
                   WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor:  'transparent',
-                  backgroundClip:       'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
                 }}>Cliente.</span>
               </h1>
 
               <p style={{
-                fontSize:   '13.5px',
-                color:      'rgba(255,255,255,0.28)',
+                fontSize: '13.5px',
+                color: 'rgba(255,255,255,0.28)',
                 lineHeight: 1.6,
-                margin:     0,
+                margin: 0,
                 fontWeight: 400,
               }}>
                 Acompanhe seu projeto em tempo real.
@@ -360,11 +375,11 @@ export default function LoginPage() {
                     tabIndex={-1}
                     style={{
                       background: 'none',
-                      border:     'none',
-                      cursor:     'pointer',
-                      padding:    '6px',
-                      color:      'rgba(255,255,255,0.2)',
-                      display:    'flex',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      color: 'rgba(255,255,255,0.2)',
+                      display: 'flex',
                       transition: 'color 0.2s',
                       flexShrink: 0,
                     }}
@@ -379,12 +394,12 @@ export default function LoginPage() {
               {/* Erro inline */}
               {error && (
                 <p style={{
-                  display:    'flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap:        '8px',
-                  fontSize:   '12.5px',
-                  color:      'rgba(255,88,88,0.85)',
-                  margin:     '-8px 0 0',
+                  gap: '8px',
+                  fontSize: '12.5px',
+                  color: 'rgba(255,88,88,0.85)',
+                  margin: '-8px 0 0',
                   lineHeight: 1.5,
                 }}>
                   <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#ff5858', flexShrink: 0, display: 'inline-block' }} />
@@ -397,24 +412,24 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 style={{
-                  width:          '100%',
-                  marginTop:      '8px',
-                  border:         'none',
-                  borderRadius:   '6px',
-                  padding:        '15px 28px',
-                  fontSize:       '14px',
-                  fontWeight:     600,
-                  color:          '#080808',
-                  letterSpacing:  '0.01em',
-                  cursor:         loading ? 'not-allowed' : 'pointer',
-                  display:        'flex',
-                  alignItems:     'center',
+                  width: '100%',
+                  marginTop: '8px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '15px 28px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#080808',
+                  letterSpacing: '0.01em',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
-                  gap:            '8px',
-                  background:     loading ? 'rgba(245,168,0,0.38)' : '#F5A800',
-                  boxShadow:      loading ? 'none' : '0 0 36px rgba(245,168,0,0.18)',
-                  transition:     'transform 0.18s ease, box-shadow 0.18s ease',
-                  fontFamily:     'Inter, system-ui, sans-serif',
+                  gap: '8px',
+                  background: loading ? 'rgba(245,168,0,0.38)' : '#F5A800',
+                  boxShadow: loading ? 'none' : '0 0 36px rgba(245,168,0,0.18)',
+                  transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+                  fontFamily: 'Inter, system-ui, sans-serif',
                 }}
                 onMouseEnter={e => {
                   if (!loading) {
@@ -436,21 +451,21 @@ export default function LoginPage() {
 
             {/* ── Rodapé ── */}
             <div style={{
-              marginTop:      '48px',
-              display:        'flex',
-              alignItems:     'center',
+              marginTop: '48px',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
             }}>
               <a
                 href="https://nordex.tech"
                 style={{
-                  fontSize:       '12px',
-                  color:          'rgba(255,255,255,0.18)',
+                  fontSize: '12px',
+                  color: 'rgba(255,255,255,0.18)',
                   textDecoration: 'none',
-                  display:        'flex',
-                  alignItems:     'center',
-                  gap:            '5px',
-                  transition:     'color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'color 0.2s',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'rgba(245,168,0,0.5)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}
@@ -475,6 +490,7 @@ export default function LoginPage() {
           @media (max-width: 1023px) {
             #login-left-panel  { display: none !important; }
             #login-mobile-logo { display: block !important; }
+            #mobile-globe-wrap { display: block !important; }
           }
         `}</style>
       </div>

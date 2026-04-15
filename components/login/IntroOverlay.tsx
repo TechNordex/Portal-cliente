@@ -23,23 +23,23 @@ function IntroStars({ active }: { active: boolean }) {
     if (!canvas) return
     const ctx = canvas.getContext('2d', { alpha: true })!
 
-    let W = (canvas.width  = window.innerWidth)
+    let W = (canvas.width = window.innerWidth)
     let H = (canvas.height = window.innerHeight)
 
     const onResize = () => {
-      W = canvas.width  = window.innerWidth
+      W = canvas.width = window.innerWidth
       H = canvas.height = window.innerHeight
     }
     window.addEventListener('resize', onResize)
 
     const stars = Array.from({ length: 200 }, () => ({
-      x:     Math.random() * W,
-      y:     Math.random() * H,
-      r:     0.15 + Math.random() * 0.85,
-      base:  0.03 + Math.random() * 0.16,
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.15 + Math.random() * 0.85,
+      base: 0.03 + Math.random() * 0.16,
       phase: Math.random() * Math.PI * 2,
       speed: 0.08 + Math.random() * 0.45,
-      gold:  Math.random() < 0.14,
+      gold: Math.random() < 0.14,
     }))
 
     let raf: number
@@ -49,7 +49,7 @@ function IntroStars({ active }: { active: boolean }) {
         const t = Math.sin(ts * 0.001 * s.speed + s.phase)
         const a = Math.max(0, s.base + t * 0.045)
         ctx.globalAlpha = a
-        ctx.fillStyle   = s.gold ? '#F5A800' : '#ffffff'
+        ctx.fillStyle = s.gold ? '#F5A800' : '#ffffff'
         ctx.beginPath()
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
         ctx.fill()
@@ -69,11 +69,11 @@ function IntroStars({ active }: { active: boolean }) {
     <canvas
       ref={canvasRef}
       style={{
-        position:      'absolute',
-        inset:         0,
+        position: 'absolute',
+        inset: 0,
         pointerEvents: 'none',
-        opacity:       active ? 0.85 : 0,
-        transition:    'opacity 1.4s ease',
+        opacity: active ? 0.85 : 0,
+        transition: 'opacity 1.4s ease',
       }}
     />
   )
@@ -82,9 +82,9 @@ function IntroStars({ active }: { active: boolean }) {
 /* ─── Overlay principal ───────────────────────────────── */
 export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
   const [phase, setPhase] = useState<Phase>('enter')
-  const introLogoRef      = useRef<HTMLDivElement>(null)
-  const skipped           = useRef(false)
-  const revealCalled      = useRef(false)
+  const introLogoRef = useRef<HTMLDivElement>(null)
+  const skipped = useRef(false)
+  const revealCalled = useRef(false)
 
   /* ── Skip ─────────────────────────────────────────── */
   const skip = useCallback(() => {
@@ -107,10 +107,10 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
 
     const timers = [
       // 0 → enter: logo surge
-      setTimeout(() => setPhase('hold'),   420),
+      setTimeout(() => setPhase('hold'), 420),
 
       // hold → fly: logo voa para posição real
-      setTimeout(() => setPhase('fly'),    2100),
+      setTimeout(() => setPhase('fly'), 2100),
 
       // fly → reveal: overlay faz fade-out, painéis sobem
       setTimeout(() => {
@@ -129,7 +129,7 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
   /* ── FLIP: anima logo intro → posição real ─────────── */
   useEffect(() => {
     if (phase !== 'fly') return
-    const intro  = introLogoRef.current
+    const intro = introLogoRef.current
     const target = realLogoWrapRef.current
     if (!intro || !target) return
 
@@ -143,8 +143,8 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
       }
     }
 
-    const dx    = (tR.left + tR.width  / 2) - (iR.left + iR.width  / 2)
-    const dy    = (tR.top  + tR.height / 2) - (iR.top  + iR.height / 2)
+    const dx = (tR.left + tR.width / 2) - (iR.left + iR.width / 2)
+    const dy = (tR.top + tR.height / 2) - (iR.top + iR.height / 2)
     const scale = tR.width / iR.width
 
     /* Força reflow antes de ligar a transição */
@@ -157,9 +157,9 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
       'filter    0.50s ease',
     ].join(', ')
 
-    intro.style.transform  = `translate(${dx}px, ${dy}px) scale(${scale})`
-    intro.style.opacity    = '0'
-    intro.style.filter     = 'drop-shadow(0 0 24px rgba(245,168,0,0.2))'
+    intro.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`
+    intro.style.opacity = '0'
+    intro.style.filter = 'drop-shadow(0 0 24px rgba(245,168,0,0.2))'
   }, [phase, realLogoWrapRef])
 
   /* ── Done: desmonta ─────────────────────────────────── */
@@ -172,18 +172,18 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
     <div
       onClick={skip}
       style={{
-        position:   'fixed',
-        inset:      0,
-        zIndex:     10000,
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
         background: '#060606',
-        display:    'flex',
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity:    overlayOpacity,
+        opacity: overlayOpacity,
         transition: phase === 'reveal'
           ? 'opacity 0.65s cubic-bezier(0.22,1,0.36,1)'
           : undefined,
-        cursor:     'pointer',
+        cursor: 'pointer',
         userSelect: 'none',
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
@@ -195,11 +195,11 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
       <div
         ref={introLogoRef}
         style={{
-          position:        'relative',
-          zIndex:          2,
+          position: 'relative',
+          zIndex: 2,
           transformOrigin: 'center center',
-          opacity:         phase === 'enter' ? 0 : 1,
-          transition:      phase === 'enter'
+          opacity: phase === 'enter' ? 0 : 1,
+          transition: phase === 'enter'
             ? 'opacity 0.55s ease'
             : undefined,
           /* Animação de pulse só no hold */
@@ -213,49 +213,49 @@ export function IntroOverlay({ realLogoWrapRef, onDone, onReveal }: Props) {
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo-Nordex-Tech-remove-WSehNqsem3EZQ2jxpk0CKTKMU1hLtG.png"
           alt="Nordex Tech"
           style={{
-            width:          'clamp(180px, 20vw, 290px)',
-            height:         'auto',
-            objectFit:      'contain',
-            display:        'block',
-            pointerEvents:  'none',
-            filter:         'drop-shadow(0 0 64px rgba(245,168,0,0.60)) drop-shadow(0 8px 36px rgba(0,0,0,0.95))',
+            width: 'clamp(180px, 20vw, 290px)',
+            height: 'auto',
+            objectFit: 'contain',
+            display: 'block',
+            pointerEvents: 'none',
+            filter: 'drop-shadow(0 0 64px rgba(245,168,0,0.60)) drop-shadow(0 8px 36px rgba(0,0,0,0.95))',
           }}
         />
       </div>
 
       {/* Linha de loading durante 'hold' */}
       <div style={{
-        position:   'absolute',
-        bottom:     '80px',
-        left:       '50%',
-        transform:  'translateX(-50%)',
-        width:      '120px',
-        height:     '1px',
+        position: 'absolute',
+        bottom: '80px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '120px',
+        height: '1px',
         background: 'rgba(255,255,255,0.05)',
-        overflow:   'hidden',
-        opacity:    phase === 'hold' ? 1 : 0,
+        overflow: 'hidden',
+        opacity: phase === 'hold' ? 1 : 0,
         transition: 'opacity 0.4s ease',
         borderRadius: '999px',
       }}>
         <div style={{
-          width:      '40%',
-          height:     '100%',
+          width: '40%',
+          height: '100%',
           background: 'linear-gradient(90deg, transparent, #F5A800, transparent)',
-          animation:  'nordexSweep 1.8s ease-in-out infinite',
+          animation: 'nordexSweep 1.8s ease-in-out infinite',
         }} />
       </div>
 
       {/* Dica de pular */}
       <p style={{
-        position:      'absolute',
-        bottom:        '32px',
-        right:         '40px',
-        fontSize:      '10px',
-        color:         'rgba(255,255,255,0.16)',
+        position: 'absolute',
+        bottom: '32px',
+        right: '40px',
+        fontSize: '10px',
+        color: 'rgba(255,255,255,0.16)',
         letterSpacing: '0.16em',
-        margin:        0,
-        opacity:       phase === 'hold' ? 1 : 0,
-        transition:    'opacity 0.5s ease',
+        margin: 0,
+        opacity: phase === 'hold' ? 1 : 0,
+        transition: 'opacity 0.5s ease',
         pointerEvents: 'none',
         textTransform: 'uppercase',
       }}>
