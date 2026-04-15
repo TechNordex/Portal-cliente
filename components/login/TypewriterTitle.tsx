@@ -49,7 +49,7 @@ export function TypewriterTitle() {
   }, [displayed, isDeleting, phraseIdx])
 
   return (
-    <div style={{
+    <div id="typewriter-title" style={{
       opacity:       mounted ? 1 : 0,
       transition:    'opacity 0.9s ease',
       textAlign:     'center',

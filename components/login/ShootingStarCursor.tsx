@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from 'react'
 
-export function ShootingStarCursor() {
+export function ShootingStarCursor({ active = true }: { active?: boolean }) {
+  const activeRef = useRef(active)
+  useEffect(() => { activeRef.current = active }, [active])
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -117,6 +119,12 @@ export function ShootingStarCursor() {
 
     const tick = () => {
       ctx.clearRect(0, 0, width, height)
+
+      /* Cursor inativo durante intro / órbita */
+      if (!activeRef.current) {
+        raf = requestAnimationFrame(tick)
+        return
+      }
 
       /* Alpha global (fade in rápido, fade out devagar) */
       const aSpd = inside ? 0.12 : 0.055
