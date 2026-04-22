@@ -90,6 +90,18 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
         }
 
+        // TELEMETRY: Automatic logging for password changes
+        if (password) {
+            try {
+                await db.query(`
+                    INSERT INTO project_telemetry (user_id, log_type, message) 
+                    VALUES ($1, 'warning', 'Chaves de criptografia e credenciais de login foram regeneradas pela equipe.')
+                `, [id])
+            } catch (err) {
+                console.error('[Telemetry Error]', err)
+            }
+        }
+
         return NextResponse.json({ user: result.rows[0] }, { status: 200 })
     } catch (error: any) {
         console.error('[admin/users PUT]', error)

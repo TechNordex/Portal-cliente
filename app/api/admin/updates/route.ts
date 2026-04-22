@@ -125,6 +125,16 @@ export async function POST(req: NextRequest) {
         }
         // ──────────────────────────────────────────────────────────────────
 
+        // TELEMETRY: Automatic logging for new updates
+        try {
+            await db.query(`
+                INSERT INTO project_telemetry (project_id, log_type, message) 
+                VALUES ($1, 'process', 'Novo pacote de atualizações compilado e disponibilizado para revisão.')
+            `, [project_id])
+        } catch (err) {
+            console.error('[Telemetry Error]', err)
+        }
+
         // Broadcast real-time update
         realtimeEmitter.emit(EVENTS.PROJECT_UPDATED, { project_id, stage, title })
 

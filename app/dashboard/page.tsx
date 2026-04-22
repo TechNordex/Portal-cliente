@@ -23,6 +23,7 @@ import { ptBR } from 'date-fns/locale'
 import NordyAssistant from '@/components/nordy-assistant'
 import ChatTeam from '@/components/chat-team'
 import { MediaLightbox } from '@/components/dashboard/MediaLightbox'
+import { LiveConsole } from '@/components/dashboard/LiveConsole'
 import confetti from 'canvas-confetti'
 
 function useTypewriter(target: string, { speed = 70, startDelay = 300 } = {}) {
@@ -343,7 +344,7 @@ export default function DashboardPage() {
         router.push('/login')
     }
 
-    const { projects, allUpdates, user } = data || {}
+    const { projects, allUpdates, user, telemetry: rawTelemetry } = data || {}
     const project = projects?.find((p: any) => p.id === activeProjectId) || null
     const updates = allUpdates?.filter((u: any) =>
         String(u.project_id).trim().toLowerCase() === String(activeProjectId).trim().toLowerCase()
@@ -560,6 +561,10 @@ export default function DashboardPage() {
                             )}
                         </div>
                     )}
+
+                    <div className="mt-8 px-1 pb-4">
+                        <LiveConsole project={project} updates={updates} dbTelemetry={rawTelemetry || []} />
+                    </div>
                 </nav>
 
                 {/* User + Logout */}

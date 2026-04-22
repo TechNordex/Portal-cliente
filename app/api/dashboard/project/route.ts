@@ -54,9 +54,31 @@ export async function GET() {
             )
         }
 
+        let telemetryLogs = { rows: [] as any[] }
+        try {
+            const projIds = projectsResult.rows.length > 0 ? projectsResult.rows.map(p => p.id) : [];
+            telemetryLogs = await db.query(
+                `SELECT 
+                    id, 
+                    log_type, 
+                    message, 
+                    action_label, 
+                    action_url, 
+                    created_at 
+                 FROM project_telemetry 
+                 WHERE user_id = $1 OR project_id = ANY($2::uuid[]) 
+                 ORDER BY created_at DESC 
+                 LIMIT 15`,
+                [session.id, projIds]
+            )
+        } catch (telemetryErr) {
+            console.error('[dashboard/project GET] Telemetry Error:', telemetryErr)
+        }
+
         return NextResponse.json({
             projects: projectsResult.rows,
             allUpdates: updates.rows,
+            telemetry: telemetryLogs.rows,
             user: { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url, role: user.role },
             termsAccepted: !!user.terms_accepted_at,
             tourCompleted: !!user.tour_completed_at,
